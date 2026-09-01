@@ -28,6 +28,8 @@ def forecast(req: ForecastRequest):
     """
     if MODEL is None:
         return {"error": "model not available"}
+    if not req.history:
+        return {"error": "history must contain at least one entry"}
     last = req.history[-1]
     features = last.get('features', {})
     df = pd.DataFrame([features])[MODEL['feature_cols']]

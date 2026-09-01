@@ -22,6 +22,13 @@ def compute_round_features(sessionized_df, user_col='user_id', round_id_col='rou
     agg = agg.sort_values([user_col, 'round_start'])
     agg['prev_round_end'] = agg.groupby(user_col)['round_end'].shift(1)
     agg['gap_since_prev_seconds'] = (agg['round_start'] - agg['prev_round_end']).dt.total_seconds().fillna(-1)
-    # Fill NaNs
-    agg = agg.fillna(0)
+
+    # --- Prepare parquet-compatible dtypes ---
+    # 1. Strip timezone info so pyarrow stores plain timestamps.
+    for c in agg.columns:
+        if pd.api.types.is_datetime64_any_dtype(agg[c]):
+            agg[c] = agg[c].dt.tz_localize(None)
+    # 2. Fill NaNs only on numeric columns; datetime NaT must stay as NaT (pyarrow handles this).
+    numeric_cols = agg.select_dtypes(include=[np.number]).columns
+    agg[numeric_cols] = agg[numeric_cols].fillna(0)
     return agg
