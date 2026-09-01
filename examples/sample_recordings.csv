@@ -1,0 +1,7 @@
+user_id,recorded_at,event_type,value
+user_1,2026-08-28T09:00:00Z,click,1
+user_1,2026-08-28T09:01:00Z,click,1
+user_1,2026-08-28T09:02:00Z,submit,1
+user_1,2026-08-28T10:30:00Z,click,1
+user_2,2026-08-28T11:00:00Z,click,1
+user_2,2026-08-28T11:45:00Z,submit,1

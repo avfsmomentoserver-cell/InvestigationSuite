@@ -1,0 +1,11 @@
+pandas>=1.5
+numpy>=1.23
+scikit-learn>=1.2
+lightgbm>=3.3
+fastapi>=0.95
+uvicorn>=0.22
+pyyaml
+joblib
+pytest
+jupyter
+requests

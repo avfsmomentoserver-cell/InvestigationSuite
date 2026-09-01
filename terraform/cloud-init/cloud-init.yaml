@@ -1,0 +1,19 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - docker-compose
+  - python3
+  - python3-pip
+  - git
+  - jq
+runcmd:
+  - [ sh, -lc, "groupadd -f docker || true" ]
+  - [ sh, -lc, "useradd -m -s /bin/bash deploy || true" ]
+  - [ sh, -lc, "usermod -aG docker deploy || true" ]
+  - [ sh, -lc, "mkdir -p /home/deploy/app" ]
+  - [ sh, -lc, "chown -R deploy:deploy /home/deploy" ]
+  - [ sh, -lc, "sudo -u deploy git clone https://github.com/avfsmomentoserver-cell/InvestigationSuite.git /home/deploy/app || (cd /home/deploy/app && sudo -u deploy git pull)" ]
+  - [ sh, -lc, "cd /home/deploy/app && sudo -u deploy docker compose up -d --build" ]
+final_message: "The instance is ready."
