@@ -97,23 +97,30 @@ class TestEmptyInput:
 
 
 class TestMissingOrNullTimestamps:
-    def test_na_timestamps_produce_nat_in_output(self):
+    """Old behaviour: NA rows survived. New behaviour: pre-filter drops them."""
+
+    def test_na_timestamps_filtered_out_before_sessionization(self):
+        """Rows with null recorded_at are dropped before grouping."""
         df = pd.DataFrame({
             "user_id": ["u1", "u1", "u2"],
             "recorded_at": pd.to_datetime(["2026-01-01T12:00:00", None, "2026-01-01T13:00:00"]),
         })
         result = sessionize(df)
-        # NA rows survive; their round metadata depends on groupby aggregation
-        assert len(result) == 3
+        # NA row dropped; only 2 valid rows produce 2 distinct users
+        assert len(result) == 2
+        assert result["round_id"].nunique() == 2
 
-    def test_all_na_timestamps(self):
+    def test_all_na_timestamps_yields_empty_result(self):
+        """When every row has null recorded_at, sessionize returns empty DataFrame."""
         df = pd.DataFrame({
             "user_id": ["u1", "u1"],
             "recorded_at": pd.to_datetime([None, None]),
         })
-        # Should handle without raising – produces NAT round boundaries
         result = sessionize(df)
-        assert len(result) == 2
+        assert len(result) == 0
+        # Key columns must still be present
+        for col in ("round_index", "round_id", "round_start", "round_end", "event_count"):
+            assert col in result.columns
 
 
 class TestDuplicateTimestamps:
