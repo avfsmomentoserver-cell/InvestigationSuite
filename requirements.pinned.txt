@@ -1,0 +1,29 @@
+# =============================================================================
+# Pinned Dependencies — Reproducible Forecasting Rounds
+# =============================================================================
+# Generated: 2026-09-01
+# Python version: 3.12.x (devcontainer)
+#
+# To update: `pip freeze > requirements.txt` then review changes carefully.
+# All packages are pinned to exact versions for byte-identical builds.
+#
+# CORE DEPENDENCIES
+# -----------------
+pandas==3.0.5
+numpy==2.5.2
+scikit-learn==1.9.0
+lightgbm==4.7.0
+fastapi==0.141.1
+uvicorn==0.52.4
+pyyaml==6.0.3
+joblib==1.6.0
+requests==2.34.2
+matplotlib==3.11.1
+pyarrow==25.0.1
+
+# TEST & DEV DEPENDENCIES
+# -----------------------
+pytest==9.1.1
+jupyter==1.1.1
+
+# =============================================================================
