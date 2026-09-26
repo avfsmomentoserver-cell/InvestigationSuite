@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AVFS Investigation Suite</title>
+<meta name="description" content="Forensic console over the InvestigationSuite decomputation backups: evidence ledger, decomposition, fairness audit, pattern tests, moonshot pressure, forecasts and replay audit.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c0d10'/%3E%3Cpath d='M7 23 L16 7 L25 23' fill='none' stroke='%23f0b34a' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='18' r='2.6' fill='%23f0b34a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="side" id="side">
+    <a class="brand" href="#/command" aria-label="AVFS Investigation Suite home">
+      <svg viewBox="0 0 32 32" width="28" height="28" fill="none" aria-hidden="true">
+        <path d="M5 26 L16 5 L27 26" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M10 18 H22" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 2.4"/>
+        <circle cx="16" cy="19.5" r="2.6" fill="var(--accent)"/>
+      </svg>
+      <span><b>AVFS</b> Investigation Suite</span>
+    </a>
+    <nav id="nav" aria-label="Sections"></nav>
+    <div class="side-foot">
+      <div class="mono tiny" id="build-meta">loading…</div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="icon-btn menu" id="menu" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="crumbs"><span class="muted" id="crumb-group">Overview</span><span class="sep">/</span><h1 id="crumb-page">Command Center</h1></div>
+      <div class="top-right">
+        <label class="src-pick" id="src-pick">
+          <span class="tiny muted">Source</span>
+          <select id="source" aria-label="Source"></select>
+        </label>
+      </div>
+    </header>
+    <main id="view" tabindex="-1"><div class="skeleton-page"><div class="sk"></div><div class="sk"></div><div class="sk tall"></div></div></main>
+  </div>
+</div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
