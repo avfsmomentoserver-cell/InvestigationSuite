@@ -1,6 +1,7 @@
 import { createOracle, parseRounds, TARGETS, MODELS, MODEL_LABEL } from './engine.js';
 import { auditLadder, runsTest, acf, moonLevels } from './stats.js';
 import * as PR from './predict.js';
+import * as PF from './platform.js';
 
 const ORDER = ['aviator', 'skyward', 'skyward_deluxe', 'aviator_jul29', 'engine'];
 const COLORS = { aviator: '#f0b34a', skyward: '#8fb4ff', skyward_deluxe: '#c49bff', aviator_jul29: '#62d2a2', engine: '#8d9099' };
@@ -25,11 +26,26 @@ const ICON = {
   backtest: 'M3 17l5-5 4 3 8-9M16 6h4v4',
   controls: 'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7zM9 12l2 2 4-4',
   nextround: 'M12 3a9 9 0 1 0 9 9M12 7v5l3 3M17 3h4v4M21 3l-6 6',
+  catalogue: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM15 15l2 2 4-4',
+  eta: 'M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 9v4l3 2M10 2h4',
+  signals: 'M3 12h3M18 12h3M12 3v3M12 18v3M7 7l1.5 1.5M15.5 15.5L17 17M7 17l1.5-1.5M15.5 8.5L17 7M9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0',
+  integrity: 'M4 12l5 5L20 6M4 4h4M4 20h16',
+  fingerprint: 'M12 4a7 7 0 0 0-7 7v3M19 11a7 7 0 0 0-3-5.7M9 20c1-2 1.5-5 1.5-8a1.5 1.5 0 1 1 3 0c0 3-.5 6-1.5 9M16 20c.5-1.5 1-4 1-7',
+  sequence: 'M4 7h4v4H4zM10 7h4v4h-4zM16 7h4v4h-4zM6 15v3M12 15v3M18 15v3',
+  arena: 'M6 3h12v5a6 6 0 0 1-12 0zM9 20h6M12 14v6M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3',
+  simulator: 'M3 20h18M5 16l4-5 3 3 4-6 3 4M17 4h4v4',
+  experiments: 'M5 3h14M8 3v5l-4 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-4-9V3M7 14h10',
+  book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M8 7h7',
 };
 const ROUTES = [
   { id: 'command', group: 'Overview', title: 'Command Center', perSource: false, render: pageCommand },
+  { id: 'catalogue', group: 'Overview', title: 'Platform Coverage', perSource: false, render: (v) => PF.pageCatalogue(v, CTX) },
+  { id: 'eta', group: 'Now', title: 'ETA Board', perSource: true, render: (v) => PF.pageEta(v, CTX) },
+  { id: 'signals', group: 'Now', title: 'Signal Strip', perSource: true, render: (v) => PF.pageSignals(v, CTX) },
   { id: 'ledger', group: 'Evidence', title: 'Backup Ledger', perSource: false, render: pageLedger },
   { id: 'decomposition', group: 'Evidence', title: 'Decomposition', perSource: false, render: pageDecomp },
+  { id: 'integrity', group: 'Evidence', title: 'Tape Integrity', perSource: true, render: (v) => PF.pageIntegrity(v, CTX) },
+  { id: 'fingerprint', group: 'Evidence', title: 'Fingerprint & Compare', perSource: true, render: (v) => PF.pageFingerprint(v, CTX) },
   { id: 'fairness', group: 'Analysis', title: 'Fairness Audit', perSource: true, render: pageFairness },
   { id: 'patterns', group: 'Analysis', title: 'Pattern DNA', perSource: true, render: pagePatterns },
   { id: 'moonshots', group: 'Analysis', title: 'Moonshot Pressure', perSource: true, render: pageMoon },
@@ -43,6 +59,11 @@ const ROUTES = [
   { id: 'backtest', group: 'Prediction', title: 'Backtest', perSource: true, render: (v) => PR.pageBacktest(v, CTX) },
   { id: 'controls', group: 'Prediction', title: 'Controls & Power', perSource: false, render: (v) => PR.pageControls(v, CTX) },
   { id: 'nextround', group: 'Prediction', title: 'Next Round', perSource: true, render: (v) => PR.pageNextRound(v, CTX) },
+  { id: 'arena', group: 'Lab', title: 'Predictor Arena', perSource: true, render: (v) => PF.pageArena(v, CTX) },
+  { id: 'sequence', group: 'Lab', title: 'Sequence Search', perSource: true, render: (v) => PF.pageSequence(v, CTX) },
+  { id: 'experiments', group: 'Lab', title: 'Experiment Registry', perSource: false, render: (v) => PF.pageExperiments(v, CTX) },
+  { id: 'simulator', group: 'Lab', title: 'Bankroll & Ledger', perSource: true, render: (v) => PF.pageSimulator(v, CTX) },
+  { id: 'book', group: 'Knowledge', title: 'Platform Book', perSource: false, render: (v) => PF.pageBook(v, CTX) },
   { id: 'lab', group: 'Tools', title: 'Round Lab', perSource: false, render: pageLab },
   { id: 'method', group: 'Tools', title: 'Method & Downloads', perSource: false, render: pageMethod },
 ];
@@ -96,7 +117,7 @@ function chart(id, cfg) {
   state.charts.push(c);
   return c;
 }
-const CTX = { state, $, esc, n0, f, pct, sgn, card, kpi, chart, chip, loadSeries, get label() { return label; } };
+const CTX = { state, $, esc, n0, f, pct, sgn, card, kpi, chart, chip, loadSeries, explain: PF.explainHTML, get label() { return label; } };
 function killCharts() { state.charts.forEach((c) => c.destroy()); state.charts = []; }
 
 async function loadSeries(name) {
@@ -183,6 +204,7 @@ function pageCommand(v) {
       ${finding(4, 'ok', 'Clean captures match the house curve', `Aviator, Skyward and Skyward Deluxe pay ${f(S.aviator.audit.ladder[1].rtp, 3)}, ${f(S.skyward.audit.ladder[1].rtp, 3)} and ${f(S.skyward_deluxe.audit.ladder[1].rtp, 3)} at 2x against 0.970 expected. No next-round model beats the house baseline at any target.`, 'fairness')}
       ${finding(5, 'ok', 'Moonshots arrive on schedule', `100x rounds: ${S.aviator.moon.levels[2].hits} vs ${f(S.aviator.moon.levels[2].expected, 0)} expected on Aviator, ${S.skyward.moon.levels[2].hits} vs ${f(S.skyward.moon.levels[2].expected, 0)} on Skyward, ${S.skyward_deluxe.moon.levels[2].hits} vs ${f(S.skyward_deluxe.moon.levels[2].expected, 0)} on Deluxe. Droughts follow the geometric wait of a memoryless game.`, 'moonshots')}
       ${finding(6, 'ok', 'The prediction pipeline finds 0 edges in 120 tests', 'Empirical, logistic and gradient-boosting models on 42 causal features, scored walk-forward with block bootstrap and FDR control. The same pipeline detects a planted +8 pp edge every time, and turns the Jul 3 burst into a fake z = +5.7 edge under shuffled cross-validation, a likely mechanism behind the Jul 4–6 replay spike.', 'pipeline')}
+      ${finding(7, 'ok', 'The platform book’s own tests agree: nothing to exploit, but the tape can be policed', 'Of the 38 features in chapter 18, 18 run here in full and 6 in part. Tape integrity scores the Jul 3 burst at 0.00 and clean Aviator at 0.997. Every ETA threshold is memoryless, none of the 14 dashboard signals survives correction, and a CUSUM fingerprint flags the spliced burst within one block.', 'catalogue')}
     `)}
     <div class="grid">
       ${card('Streams at a glance', 'Clean rows only. Payout at 2x should be 0.970 under a 97% RTP.', `
@@ -702,11 +724,15 @@ function pageMethod(v) {
         <tr><td><a class="acc" href="dl/oracle_engine.py" download>oracle_engine.py</a></td><td class="small muted wrap">Forecast engine, Python port</td></tr>
         <tr><td><a class="acc" href="dl/predict.py" download>predict.py</a></td><td class="small muted wrap">Prediction pipeline: features, walk-forward models, calibration, backtest, controls. <span class="mono">python predict.py --repo ../InvestigationSuite [--fast]</span> or <span class="mono">--score rounds.csv</span></td></tr>
         <tr><td><a class="acc" href="data/predict.json" download>predict.json</a></td><td class="small muted wrap">Full pipeline output behind the Prediction pages</td></tr>
+        <tr><td><a class="acc" href="dl/platform_features.py" download>platform_features.py</a></td><td class="small muted wrap">Platform-book features (chapter 18): integrity, fingerprint, signals, ETA, compare, registry, book index. <span class="mono">python platform_features.py --repo ../InvestigationSuite --book ../momento-platform-book</span></td></tr>
+        <tr><td><a class="acc" href="data/platform.json" download>platform.json</a></td><td class="small muted wrap">Output behind the Now, Evidence and Lab pages</td></tr>
       </tbody></table></div>`)}
       ${card('Rebuild from the repo', '', `<pre>git clone -b decomputation \\
   https://github.com/avfsmomentoserver-cell/InvestigationSuite IS
 pip install pandas numpy py7zr
 python pipeline/decompose.py --repo IS
+python pipeline/predict.py --repo IS
+python pipeline/platform_features.py --repo IS --book mpb
 python -m http.server 8080</pre>`)}
       ${card('Limits', '', `<div class="prose"><p>Captures are what the recorder saw. Missed rounds inside a session cannot be detected from multipliers alone. The replay link to the burst is inferred from timing, and the momento.db engine stream is a simulator kept as a control, not a real game.</p></div>`)}
     </div>

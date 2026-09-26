@@ -294,6 +294,7 @@ export function pageCalibration(v, C) {
     ${card('Reliability diagram', 'On the diagonal is perfect calibration. Error bars are ±2 standard errors of the observed rate.', `
       <div class="row" style="margin-bottom:12px">${seg('cal-t', TG.map((m) => [String(m), m + 'x']), tgt)}</div>
       <div class="chart tall"><canvas id="c-rel"></canvas></div>`, 'mt')}
+    ${card('Reliability Studio: Murphy decomposition', 'F-17 · Brier = reliability − resolution + uncertainty, from the ten out-of-fold bins. Reliability is miscalibration (lower is better); resolution is how much the forecasts separate outcomes (higher is better). The interval is ±2 SE from the bin counts.', `<div class="tbl-wrap"><table id="cal-mur"></table></div>`, 'mt')}
     ${card('Scores by target', 'Log-loss and Brier are lower-is-better; the house row is the bar to clear. AUC 0.5 means no ranking ability.', `<div class="tbl-wrap"><table id="cal-tbl"></table></div>`, 'mt')}`;
     let rc = null;
     const draw = () => {
@@ -316,6 +317,16 @@ export function pageCalibration(v, C) {
         options: { plugins: { legend: { position: 'bottom', labels: { filter: (i) => i.text } }, tooltip: { callbacks: { label: (c) => (c.raw.n ? `pred ${pct(c.raw.x, 2)} · obs ${pct(c.raw.y, 2)} · n ${c.raw.n}` : '') } } },
           scales: { x: { type: 'linear', min: lo, max: hi, title: { display: true, text: 'predicted' }, ticks: { callback: (v) => pct(v, 1) } }, y: { min: Math.max(0, lo - 0.05), max: Math.min(1, hi + 0.05), title: { display: true, text: 'observed' }, ticks: { callback: (v) => pct(v, 1) } } } },
       });
+      const obar = sc.house.rate_obs;
+      const mur = models.map((md) => {
+        const bins = sc[md].rel; const N = bins.reduce((a, b) => a + b.n, 0);
+        const rel = bins.reduce((a, b) => a + b.n * (b.p - b.o) ** 2, 0) / N;
+        const res = bins.reduce((a, b) => a + b.n * (b.o - obar) ** 2, 0) / N;
+        const relSe = Math.sqrt(bins.reduce((a, b) => a + (b.n / N) ** 2 * (2 * Math.abs(b.p - b.o) * b.se) ** 2, 0));
+        const nullRes = bins.reduce((a, b) => a + (b.n / N) * b.se * b.se, 0);
+        return { md, rel, res, relSe, nullRes, unc: obar * (1 - obar), N };
+      });
+      document.getElementById('cal-mur').innerHTML = `<thead><tr><th>Model</th><th class="num">Reliability (×10⁴)</th><th class="num">Resolution (×10⁴)</th><th class="num">Noise floor (×10⁴)</th><th class="num">Uncertainty (×10⁴)</th><th class="num">Brier (bins)</th><th>Reading</th></tr></thead><tbody>${mur.map((m) => `<tr><td class="small"><span style="color:${MCOL[m.md]}">●</span> ${esc(P.config.model_label[m.md])}</td><td class="num">${f(m.rel * 1e4, 2)} <span class="faint">± ${f(2 * m.relSe * 1e4, 2)}</span></td><td class="num">${f(m.res * 1e4, 2)}</td><td class="num faint">${f(m.nullRes * 1e4, 2)}</td><td class="num">${f(m.unc * 1e4, 1)}</td><td class="num">${f((m.rel - m.res + m.unc), 5)}</td><td class="small ${m.res > 2 * m.nullRes ? 'acc' : 'muted'}">${m.res > 2 * m.nullRes ? 'above noise' : 'at noise level'}</td></tr>`).join('')}</tbody>`;
       document.getElementById('cal-tbl').innerHTML = `<thead><tr><th class="num">Target</th><th>Model</th><th class="num">Log-loss</th><th class="num">Brier</th><th class="num">AUC</th><th class="num">ECE</th><th class="num">Skill</th></tr></thead><tbody>
         ${TG.map((m) => ['house', ...models].map((md, i) => { const x = S.scores[m][md]; return `<tr class="${i === 0 ? 'grp-top' : ''} ${String(m) === tgt ? 'sel' : ''}"><td class="num">${i === 0 ? m + 'x' : ''}</td><td class="small"><span style="color:${MCOL[md]}">●</span> ${esc(P.config.model_label[md])}</td><td class="num">${f(x.ll, 5)}</td><td class="num">${f(x.brier, 5)}</td><td class="num">${x.auc == null ? '–' : f(x.auc, 3)}</td><td class="num">${x.ece == null ? '–' : pct(x.ece, 2)}</td><td class="num ${x.skill > 0 ? 'acc' : 'faint'}">${md === 'house' ? '0' : C.sgn(x.skill, 3)}</td></tr>`; }).join('')).join('')}</tbody>`;
     };
@@ -470,6 +481,7 @@ export function pageNextRound(v, C) {
         <button class="btn ghost" id="nr-reset">Reset</button>
       </div>
       <div class="chips mt" id="nr-tail"></div>`, 'mt')}
+    ${C.explain ? card('Explain this forecast', 'F-35 · Where the logistic probability comes from, feature by feature. Updates with the what-if buttons.', `<div class="row">${seg('nr-xt', TG.map((m) => [String(m), m + 'x']), '2')}</div><div id="nr-xp" class="mt"></div>`, 'mt') : ''}
     ${card('Paste your own history', `At least ${205} rounds, newest last. Uses the ${esc(C.label(s))} weights; hour and session features are neutralised.`, `
       <textarea id="nr-in" class="ta" placeholder="1.42&#10;3.10&#10;…"></textarea>
       <div class="row mt"><button class="btn" id="nr-run">Predict next round</button><span class="small muted" id="nr-msg"></span></div>`, 'mt')}
@@ -509,7 +521,12 @@ export function pageNextRound(v, C) {
         options: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: false, suggestedMin: 0.8, suggestedMax: 1.2, grid: { color: (c) => (c.tick.value === 1 ? '#4a4f5c' : '#1f2229') } } } },
       });
       document.getElementById('nr-tail').innerHTML = x.slice(-24).map((v) => C.chip(v)).join('');
+      lastVec = vec;
+      drawXp();
     };
+    let lastVec = null, xt = '2';
+    const drawXp = () => { const el = document.getElementById('nr-xp'); if (el && C.explain && lastVec) el.innerHTML = C.explain(S.weights[xt], names, lastVec, +xt, C); };
+    if (C.explain) bindSeg('nr-xt', (k) => { xt = k; drawXp(); });
     render(cur.x, cur.t);
     const push = (vals) => { for (const x of vals) { cur.x.push(x); cur.t.push(cur.t[cur.t.length - 1] + 20); } render(cur.x, cur.t, `${cur.x.length - base.x.length} hypothetical`); };
     v.querySelectorAll('.nr-add').forEach((b) => b.addEventListener('click', () => push([+b.dataset.x])));

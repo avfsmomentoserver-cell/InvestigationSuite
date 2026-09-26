@@ -259,3 +259,51 @@ pre.code { margin: 0; padding: 14px 16px; overflow-x: auto; background: var(--bg
 textarea.ta { width: 100%; min-height: 110px; padding: 10px 12px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 8px; font-family: var(--mono); font-size: var(--t-sm); resize: vertical; }
 details summary { cursor: pointer; }
 @media (max-width: 640px) { .dag { grid-template-columns: 1fr 1fr; } .dag-node > *::after { display: none; } .dag-s { position: static; } }
+
+/* ═══ Platform-book pages ═══ */
+.cibar { position: relative; height: 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 4px; margin: 8px 0 4px; }
+.cibar i.zero { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--line-2); }
+.cibar b { position: absolute; top: 3px; height: 6px; border-radius: 3px; background: var(--muted); opacity: .55; }
+.cibar b.sig { background: var(--accent); opacity: 1; }
+.cibar em { position: absolute; top: 1px; width: 2px; height: 10px; margin-left: -1px; background: var(--text); }
+.strip { display: flex; height: 34px; gap: 1px; border-radius: 6px; overflow: hidden; background: var(--bg-2); }
+.strip i { min-width: 1px; display: block; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.tile { border: 1px solid var(--line); background: var(--bg-2); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.tile.hot { border-color: rgba(240, 179, 74, .55); box-shadow: inset 0 0 0 1px rgba(240, 179, 74, .25); }
+.wf { position: relative; height: 10px; background: var(--bg-2); border-radius: 3px; min-width: 80px; }
+.wf::before { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--line-2); }
+.wf i { position: absolute; top: 2px; height: 6px; border-radius: 2px; }
+.book { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 16px; align-items: start; }
+.book-toc { position: sticky; top: 72px; max-height: calc(100vh - 96px); overflow: auto; padding: 10px; }
+.book-toc .grp { font: 600 var(--t-xs) var(--mono); color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin: 12px 6px 4px; }
+.book-toc .grp:first-child { margin-top: 2px; }
+.book-toc a { display: block; padding: 5px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: var(--t-xs); line-height: 1.35; }
+.book-toc a:hover { color: var(--text); background: var(--panel-2); }
+.book-toc a.on { color: var(--accent); background: var(--accent-soft); }
+.book-doc { min-width: 0; }
+.md { line-height: 1.65; max-width: 78ch; overflow-wrap: anywhere; }
+.md h1 { font-size: 1.6rem; margin: 0 0 14px; line-height: 1.2; }
+.md h2 { font-size: 1.2rem; margin: 30px 0 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+.md h3 { font-size: 1.02rem; margin: 22px 0 8px; }
+.md h4 { font-size: .95rem; margin: 18px 0 6px; color: var(--muted); }
+.md p, .md ul, .md ol { margin: 0 0 12px; }
+.md ul, .md ol { padding-left: 22px; }
+.md a { color: var(--accent); }
+.md code { font: .86em var(--mono); background: var(--bg-2); border: 1px solid var(--line); padding: 1px 5px; border-radius: 4px; }
+.md pre { background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto; font-size: var(--t-xs); }
+.md pre code { background: none; border: 0; padding: 0; }
+.md table { border-collapse: collapse; margin: 0 0 14px; font-size: var(--t-xs); display: block; overflow-x: auto; max-width: 100%; }
+.md th, .md td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; vertical-align: top; }
+.md th { background: var(--bg-2); }
+.md blockquote { margin: 0 0 12px; padding: 8px 14px; border-left: 3px solid var(--accent); background: var(--accent-soft); color: var(--muted); }
+.md .flash, .md :target { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+.hit { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 8px; background: var(--bg-2); }
+.hit.best { border-color: rgba(240, 179, 74, .5); }
+.hit p { margin: 6px 0 0; }
+mark { background: rgba(240, 179, 74, .28); color: var(--text); border-radius: 2px; padding: 0 1px; }
+@media (max-width: 860px) {
+  .book { grid-template-columns: 1fr; }
+  .book-toc { position: static; max-height: 240px; }
+}
